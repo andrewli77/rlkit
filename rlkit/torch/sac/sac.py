@@ -42,6 +42,8 @@ class SACTrainer(TorchTrainer, LossFunction):
 
             use_automatic_entropy_tuning=True,
             target_entropy=None,
+
+            alpha_const=1 # andrew: added. Only works when `use_automatic_entropy_tuning` is set to False.
     ):
         super().__init__()
         self.env = env
@@ -52,6 +54,8 @@ class SACTrainer(TorchTrainer, LossFunction):
         self.target_qf2 = target_qf2
         self.soft_target_tau = soft_target_tau
         self.target_update_period = target_update_period
+
+        self.alpha_const = alpha_const
 
         self.use_automatic_entropy_tuning = use_automatic_entropy_tuning
         if self.use_automatic_entropy_tuning:
@@ -161,7 +165,7 @@ class SACTrainer(TorchTrainer, LossFunction):
             alpha = self.log_alpha.exp()
         else:
             alpha_loss = 0
-            alpha = 1
+            alpha = self.alpha_const 
 
         q_new_actions = torch.min(
             self.qf1(obs, new_obs_actions),
